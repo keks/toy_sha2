@@ -73,23 +73,10 @@ impl<P: Sha2Params> Sha2Context<P> {
 
         let msg_block_bytes: &[u8] = self.msg_block.as_ref();
 
-        println!("message block bytes: {:x?}", msg_block_bytes);
-
         #[allow(clippy::needless_range_loop)]
         for t in 0..16 {
-            //println!("t:{t} msgblockbyte:{msg_block_bytes:#?}");
             w[t] = P::parse_word(&msg_block_bytes[(t * 4)..]);
         }
-
-        println!("first 16 words in w:");
-        println!(
-            "{:x} {:x} {:x} {:x} {:x} {:x} {:x} {:x} ",
-            w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7]
-        );
-        println!(
-            "{:x} {:x} {:x} {:x} {:x} {:x} {:x} {:x} ",
-            w[8], w[9], w[10], w[11], w[12], w[13], w[14], w[15]
-        );
 
         #[allow(clippy::needless_range_loop)]
         for t in 16..64 {
@@ -100,24 +87,6 @@ impl<P: Sha2Params> Sha2Context<P> {
         }
 
         let v = &w[16..];
-
-        println!("next 32 words in w:");
-        println!(
-            "{:x} {:x} {:x} {:x} {:x} {:x} {:x} {:x} ",
-            v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]
-        );
-        println!(
-            "{:x} {:x} {:x} {:x} {:x} {:x} {:x} {:x} ",
-            v[8], v[9], v[10], v[11], v[12], v[13], v[14], v[15]
-        );
-        println!(
-            "{:x} {:x} {:x} {:x} {:x} {:x} {:x} {:x} ",
-            v[16], v[17], v[18], v[19], v[20], v[21], v[22], v[23]
-        );
-        println!(
-            "{:x} {:x} {:x} {:x} {:x} {:x} {:x} {:x} ",
-            v[24], v[25], v[26], v[27], v[28], v[29], v[30], v[31]
-        );
 
         let intermediate_hash = self.intermediate_hash.as_mut();
 
@@ -141,8 +110,6 @@ impl<P: Sha2Params> Sha2Context<P> {
                 .wrapping_add(&P::K.as_ref()[t])
                 .wrapping_add(&w[t]);
             temp2 = P::upper_sigma0(a).wrapping_add(&P::maj(a, b, c));
-            // println!("temp1: {temp1:?}");
-            // println!("temp2: {temp2:?}");
             h = g;
             g = f;
             f = e;
@@ -217,7 +184,6 @@ impl<P: Sha2Params> Sha2Context<P> {
     }
 
     fn pad_message(&mut self, pad_byte: u8) -> Result<()> {
-        println!("pad byte= {pad_byte}");
         if self.msg_block_idx >= P::MSG_BLOCK_SIZE - 8 {
             self.msg_block.as_mut()[self.msg_block_idx] = pad_byte;
             self.msg_block_idx += 1;
