@@ -1,4 +1,4 @@
-use super::{Sha2Params, Sha2Word};
+use super::Sha2Params;
 use crate::error::{Result, Sha2Corrupted};
 use num_traits::ops::wrapping::WrappingAdd;
 
@@ -69,7 +69,7 @@ impl<P: Sha2Params> Sha2Context<P> {
     }
 
     pub fn process_message_block(&mut self) -> Result<()> {
-        let mut w = [P::Word::ZERO; 64];
+        let mut w = P::new_w();
 
         let msg_block_bytes: &[u8] = self.msg_block.as_ref();
 
@@ -79,14 +79,12 @@ impl<P: Sha2Params> Sha2Context<P> {
         }
 
         #[allow(clippy::needless_range_loop)]
-        for t in 16..64 {
+        for t in 16..P::W_LEN {
             w[t] = P::lower_sigma1(w[t - 2])
                 .wrapping_add(&w[t - 7])
                 .wrapping_add(&P::lower_sigma0(w[t - 15]))
                 .wrapping_add(&w[t - 16])
         }
-
-        let v = &w[16..];
 
         let intermediate_hash = self.intermediate_hash.as_mut();
 
@@ -103,7 +101,7 @@ impl<P: Sha2Params> Sha2Context<P> {
         let mut temp2: P::Word;
 
         #[allow(clippy::needless_range_loop)]
-        for t in 0..64 {
+        for t in 0..P::W_LEN {
             temp1 = h
                 .wrapping_add(&P::upper_sigma1(e))
                 .wrapping_add(&Self::ch(e, f, g))

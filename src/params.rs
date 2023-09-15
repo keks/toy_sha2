@@ -1,5 +1,5 @@
 use crate::ops::Rotr;
-use std::fmt::LowerHex;
+use std::{fmt::LowerHex, ops::IndexMut};
 
 pub trait Sha2Word:
     Clone
@@ -29,15 +29,19 @@ pub trait Sha2Params {
 
     type IntermediateHash: AsMut<[Self::Word]>;
     type Constants: AsRef<[Self::Word]>;
-    type MessageBlock: AsRef<[u8]> + AsMut<[u8]>;
     type Digest;
     const MSG_BLOCK_SIZE: usize;
+
+    type MessageBlock: AsRef<[u8]> + AsMut<[u8]>;
+    type W: IndexMut<usize, Output = Self::Word>;
+    fn new_msg_block() -> Self::MessageBlock;
+    fn new_w() -> Self::W;
 
     const HASH_LEN_BYTES: usize;
     const H0: Self::IntermediateHash;
     const K: Self::Constants;
+    const W_LEN: usize;
 
-    fn new_msg_block() -> Self::MessageBlock;
     fn parse_word(src: &[u8]) -> Self::Word;
     fn write_hash(dst: &mut Self::Digest, ihash: &Self::IntermediateHash);
 
@@ -51,6 +55,10 @@ impl Sha2Word for u32 {
     const ZERO: u32 = 0u32;
 }
 
+impl Sha2Word for u64 {
+    const ZERO: u64 = 0u64;
+}
+
 pub struct Sha256Params;
 
 impl Sha2Params for Sha256Params {
@@ -58,11 +66,13 @@ impl Sha2Params for Sha256Params {
 
     type IntermediateHash = [u32; 8];
     type Digest = [u8; 32];
+    type W = [u32; 64];
 
     type Constants = [u32; 64];
 
     type MessageBlock = [u8; 64];
 
+    const W_LEN: usize = 64;
     const MSG_BLOCK_SIZE: usize = 64;
     const HASH_LEN_BYTES: usize = 32;
 
@@ -94,6 +104,10 @@ impl Sha2Params for Sha256Params {
         [0u8; 64]
     }
 
+    fn new_w() -> Self::W {
+        [0u32; 64]
+    }
+
     fn write_hash(dst: &mut Self::Digest, ihash: &Self::IntermediateHash) {
         for i in 0..Self::HASH_LEN_BYTES {
             dst[i] = (ihash[i >> 2] >> (8 * (3 - (i & 3)))) as u8;
@@ -116,11 +130,7 @@ impl Sha2Params for Sha256Params {
         word.rotr(17) ^ word.rotr(19) ^ (word >> 10)
     }
 
-    fn ch(x: Self::Word, y: Self::Word, z: Self::Word) -> Self::Word {
-        (x & y) ^ (!x & z)
     }
 
-    fn maj(x: Self::Word, y: Self::Word, z: Self::Word) -> Self::Word {
-        (x & (y | z)) | (y & z)
     }
 }
