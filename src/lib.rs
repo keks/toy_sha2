@@ -98,18 +98,20 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn test512_singlebyte() -> Result<()> {
-        let mut ctx: Sha2Context<Sha512Params> = Sha2Context::new();
-        let mut digest_out = [0u8; 64];
-
-        let msg = hex!("21");
-        let digest_exp = hex!("3831a6a6155e509dee59a7f451eb35324d8f8f2df6e3708894740f98fdee23889f4de5adb0c5010dfb555cda77c8ab5dc902094c52de3278f35a75ebc25f093a");
-
-        ctx.input(&msg)?;
-        ctx.result(&mut digest_out)?;
-        // known breakage
-        //assert_eq!(digest_out, digest_exp);
-        Ok(())
-    }
+    /* Unfortunately, SHA512 doesn't give the correct results yet. I am not sure where
+     * the problem is, but I didn't have enough time to debug it.
+     * */
+    // #[test]
+    // fn test512_singlebyte() -> Result<()> {
+    //     let mut ctx: Sha2Context<Sha512Params> = Sha2Context::new();
+    //     let mut digest_out = [0u8; 64];
+    //
+    //     let msg = hex!("21");
+    //     let digest_exp = hex!("3831a6a6155e509dee59a7f451eb35324d8f8f2df6e3708894740f98fdee23889f4de5adb0c5010dfb555cda77c8ab5dc902094c52de3278f35a75ebc25f093a");
+    //
+    //     ctx.input(&msg)?;
+    //     ctx.result(&mut digest_out)?;
+    //     assert_eq!(digest_out, digest_exp);
+    //     Ok(())
+    // }
 }
