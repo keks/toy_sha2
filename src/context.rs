@@ -106,10 +106,10 @@ impl<P: Sha2Params> Sha2Context<P> {
         for t in 0..64 {
             temp1 = h
                 .wrapping_add(&P::upper_sigma1(e))
-                .wrapping_add(&P::ch(e, f, g))
+                .wrapping_add(&Self::ch(e, f, g))
                 .wrapping_add(&P::K.as_ref()[t])
                 .wrapping_add(&w[t]);
-            temp2 = P::upper_sigma0(a).wrapping_add(&P::maj(a, b, c));
+            temp2 = P::upper_sigma0(a).wrapping_add(&Self::maj(a, b, c));
             h = g;
             g = f;
             f = e;
@@ -228,6 +228,14 @@ impl<P: Sha2Params> Sha2Context<P> {
         P::write_hash(dst, &self.intermediate_hash);
 
         Ok(())
+    }
+
+    fn ch(x: P::Word, y: P::Word, z: P::Word) -> P::Word {
+        (x & y) ^ (!x & z)
+    }
+
+    fn maj(x: P::Word, y: P::Word, z: P::Word) -> P::Word {
+        (x & (y | z)) | (y & z)
     }
 }
 

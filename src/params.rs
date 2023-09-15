@@ -45,8 +45,6 @@ pub trait Sha2Params {
     fn upper_sigma1(word: Self::Word) -> Self::Word;
     fn lower_sigma0(word: Self::Word) -> Self::Word;
     fn lower_sigma1(word: Self::Word) -> Self::Word;
-    fn ch(x: Self::Word, y: Self::Word, z: Self::Word) -> Self::Word;
-    fn maj(x: Self::Word, y: Self::Word, z: Self::Word) -> Self::Word;
 }
 
 impl Sha2Word for u32 {
