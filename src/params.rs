@@ -265,7 +265,7 @@ impl Sha2Params for Sha512Params {
 
     fn write_hash(dst: &mut Self::Digest, ihash: &Self::IntermediateHash) {
         for i in 0..Self::HASH_LEN_BYTES {
-            dst[i] = (ihash[i >> 3] >> 8 * (7 - (i % 8))) as u8;
+            dst[i] = (ihash[i >> 3] >> (8 * (7 - (i % 8)))) as u8;
         }
     }
 
