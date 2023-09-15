@@ -11,3 +11,11 @@ impl Rotr<usize> for u32 {
         (self >> by) | (self << (32 - by))
     }
 }
+
+impl Rotr<usize> for u64 {
+    type Output = u64;
+
+    fn rotr(self, by: usize) -> u64 {
+        (self >> by) | (self << (64 - by))
+    }
+}
