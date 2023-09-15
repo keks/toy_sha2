@@ -1,3 +1,4 @@
+use crate::ops::Rotr;
 use std::fmt::LowerHex;
 
 pub trait Sha2Word:
@@ -39,6 +40,13 @@ pub trait Sha2Params {
     fn new_msg_block() -> Self::MessageBlock;
     fn parse_word(src: &[u8]) -> Self::Word;
     fn write_hash(dst: &mut Self::Digest, ihash: &Self::IntermediateHash);
+
+    fn upper_sigma0(word: Self::Word) -> Self::Word;
+    fn upper_sigma1(word: Self::Word) -> Self::Word;
+    fn lower_sigma0(word: Self::Word) -> Self::Word;
+    fn lower_sigma1(word: Self::Word) -> Self::Word;
+    fn ch(x: Self::Word, y: Self::Word, z: Self::Word) -> Self::Word;
+    fn maj(x: Self::Word, y: Self::Word, z: Self::Word) -> Self::Word;
 }
 
 impl Sha2Word for u32 {
@@ -92,5 +100,29 @@ impl Sha2Params for Sha256Params {
         for i in 0..Self::HASH_LEN_BYTES {
             dst[i] = (ihash[i >> 2] >> (8 * (3 - (i & 3)))) as u8;
         }
+    }
+
+    fn upper_sigma0(word: Self::Word) -> Self::Word {
+        word.rotr(2) ^ word.rotr(13) ^ word.rotr(22)
+    }
+
+    fn upper_sigma1(word: Self::Word) -> Self::Word {
+        word.rotr(6) ^ word.rotr(11) ^ word.rotr(25)
+    }
+
+    fn lower_sigma0(word: Self::Word) -> Self::Word {
+        word.rotr(7) ^ word.rotr(18) ^ (word >> 3)
+    }
+
+    fn lower_sigma1(word: Self::Word) -> Self::Word {
+        word.rotr(17) ^ word.rotr(19) ^ (word >> 10)
+    }
+
+    fn ch(x: Self::Word, y: Self::Word, z: Self::Word) -> Self::Word {
+        (x & y) ^ (!x & z)
+    }
+
+    fn maj(x: Self::Word, y: Self::Word, z: Self::Word) -> Self::Word {
+        (x & (y | z)) | (y & z)
     }
 }

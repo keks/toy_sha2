@@ -1,6 +1,5 @@
 use super::{Sha2Params, Sha2Word};
 use crate::error::{Result, Sha2Corrupted};
-use crate::ops::Rotr;
 use num_traits::ops::wrapping::WrappingAdd;
 
 pub struct Sha2Context<P: Sha2Params + ?Sized> {
@@ -94,9 +93,9 @@ impl<P: Sha2Params> Sha2Context<P> {
 
         #[allow(clippy::needless_range_loop)]
         for t in 16..64 {
-            w[t] = Self::lower_sigma1(w[t - 2])
+            w[t] = P::lower_sigma1(w[t - 2])
                 .wrapping_add(&w[t - 7])
-                .wrapping_add(&Self::lower_sigma0(w[t - 15]))
+                .wrapping_add(&P::lower_sigma0(w[t - 15]))
                 .wrapping_add(&w[t - 16])
         }
 
@@ -137,11 +136,11 @@ impl<P: Sha2Params> Sha2Context<P> {
         #[allow(clippy::needless_range_loop)]
         for t in 0..64 {
             temp1 = h
-                .wrapping_add(&Self::upper_sigma1(e))
-                .wrapping_add(&Self::ch(e, f, g))
+                .wrapping_add(&P::upper_sigma1(e))
+                .wrapping_add(&P::ch(e, f, g))
                 .wrapping_add(&P::K.as_ref()[t])
                 .wrapping_add(&w[t]);
-            temp2 = Self::upper_sigma0(a).wrapping_add(&Self::maj(a, b, c));
+            temp2 = P::upper_sigma0(a).wrapping_add(&P::maj(a, b, c));
             // println!("temp1: {temp1:?}");
             // println!("temp2: {temp2:?}");
             h = g;
@@ -263,30 +262,6 @@ impl<P: Sha2Params> Sha2Context<P> {
         P::write_hash(dst, &self.intermediate_hash);
 
         Ok(())
-    }
-
-    fn upper_sigma0(word: P::Word) -> P::Word {
-        word.rotr(2) ^ word.rotr(13) ^ word.rotr(22)
-    }
-
-    fn upper_sigma1(word: P::Word) -> P::Word {
-        word.rotr(6) ^ word.rotr(11) ^ word.rotr(25)
-    }
-
-    fn lower_sigma0(word: P::Word) -> P::Word {
-        word.rotr(7) ^ word.rotr(18) ^ (word >> 3)
-    }
-
-    fn lower_sigma1(word: P::Word) -> P::Word {
-        word.rotr(17) ^ word.rotr(19) ^ (word >> 10)
-    }
-
-    fn ch(x: P::Word, y: P::Word, z: P::Word) -> P::Word {
-        (x & y) ^ (!x & z)
-    }
-
-    fn maj(x: P::Word, y: P::Word, z: P::Word) -> P::Word {
-        (x & (y | z)) | (y & z)
     }
 }
 
