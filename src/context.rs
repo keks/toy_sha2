@@ -37,7 +37,7 @@ impl<P: Sha2Params> Sha2Context<P> {
     }
 
     pub fn input(&mut self, mut msg_chunk: &[u8]) -> Result<()> {
-        if msg_chunk.len() == 0 {
+        if msg_chunk.is_empty() {
             return Ok(());
         }
 
@@ -76,6 +76,7 @@ impl<P: Sha2Params> Sha2Context<P> {
 
         println!("message block bytes: {:x?}", msg_block_bytes);
 
+        #[allow(clippy::needless_range_loop)]
         for t in 0..16 {
             //println!("t:{t} msgblockbyte:{msg_block_bytes:#?}");
             w[t] = P::parse_word(&msg_block_bytes[(t * 4)..]);
@@ -91,6 +92,7 @@ impl<P: Sha2Params> Sha2Context<P> {
             w[8], w[9], w[10], w[11], w[12], w[13], w[14], w[15]
         );
 
+        #[allow(clippy::needless_range_loop)]
         for t in 16..64 {
             w[t] = Self::lower_sigma1(w[t - 2])
                 .wrapping_add(&w[t - 7])
@@ -132,6 +134,7 @@ impl<P: Sha2Params> Sha2Context<P> {
         let mut temp1: P::Word;
         let mut temp2: P::Word;
 
+        #[allow(clippy::needless_range_loop)]
         for t in 0..64 {
             temp1 = h
                 .wrapping_add(&Self::upper_sigma1(e))
@@ -168,7 +171,7 @@ impl<P: Sha2Params> Sha2Context<P> {
     const FINAL_BITS_MASKS: [u8; 8] = [0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe];
     const FINAL_BITS_MASKBIT: [u8; 8] = [0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x1];
 
-    fn final_bits(&mut self, msg_bits: u8, msg_bits_count: usize) -> Result<()> {
+    pub fn final_bits(&mut self, msg_bits: u8, msg_bits_count: usize) -> Result<()> {
         if msg_bits_count == 0 {
             // the RFC says to return success, but this seems more reasonable
             return self.corrupted.into_result(());
@@ -284,5 +287,11 @@ impl<P: Sha2Params> Sha2Context<P> {
 
     fn maj(x: P::Word, y: P::Word, z: P::Word) -> P::Word {
         (x & (y | z)) | (y & z)
+    }
+}
+
+impl<P: Sha2Params> std::default::Default for Sha2Context<P> {
+    fn default() -> Self {
+        Self::new()
     }
 }
